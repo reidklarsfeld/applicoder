@@ -3,9 +3,11 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const PORT = 3000;
-const authRouter = require("./Routes/Authentication")
-const tokenAccess = require("./tokenAccess")
+const authRouter = require('./Routes/Authentication');
+const tokenAccess = require('./tokenAccess');
+const cookies = require('./CookiesAndVerification/cookies');
 const mongoose = require('mongoose');
 const graphqlHTTP = require('express-graphql');
 const schema = require('./schema');
@@ -18,30 +20,44 @@ mongoose.connect(mongoURI, { useUnifiedTopology: true, useNewUrlParser: true });
 mongoose.set('useCreateIndex', true);
 
 let accessinfo = '';
+let linkedInAccessToken = '';
 
 app.use(bodyParser.json());
+app.use(cookieParser());
+
 app.use('/build', express.static(path.join(__dirname, '../build')));
-app.get('/', (req, res) => {
+app.get('/', cookies.checkCookies, (req, res) => {
   res.status(200).sendFile(path.join(__dirname, '../index.html'));
 });
 app.use('/auth', authRouter);
 
 //oauth callbacks
-app.get("/github/callback", tokenAccess.githubRequestToken, (req, res) => {
-  accessinfo = res.locals.login;
-  console.log(accessinfo)
-  res.redirect('/')
-});
+app.get(
+  '/github/callback',
+  tokenAccess.githubRequestToken,
+  cookies.createCookies,
+  (req, res) => {
+    accessinfo = res.locals.login;
+    console.log(accessinfo);
+    res.redirect('/');
+  }
+);
 
-app.get("/linkedIn/callback", tokenAccess.linkedInRequestToken, (req, res) => {
-  accessinfo = res.locals.login;
-  res.redirect('/');
-});
+app.get(
+  '/linkedIn/callback',
+  tokenAccess.linkedInRequestToken,
+  cookies.createCookies,
+  (req, res) => {
+    accessinfo = res.locals.login;
+    linkedInAccessToken = res.locals.accessToken;
+    res.redirect('/');
+  }
+);
 
 //userinformation endpoint
 app.get('/getUserInfo', (req, res) => {
   res.json(accessinfo);
-})
+});
 
 //get request to signup page
 app.get('/login', (req, res) => {
@@ -59,16 +75,21 @@ app.get('/favorites', userController.getFavorites, (req, res) => {
 });
 
 //add a favorite to user
-app.post('/favorites', userController.addFavorite, userController.getFavorites, (req, res) => {
-  res.status(200).send(JSON.stringify(res.locals.results));
-});
+app.post(
+  '/favorites',
+  userController.addFavorite,
+  userController.getFavorites,
+  (req, res) => {
+    res.status(200).send(JSON.stringify(res.locals.results));
+  }
+);
 
 // query api
 app.use(
   '/graphql',
   graphqlHTTP({
     schema,
-    graphiql: true 
+    graphiql: true
   })
 );
 
