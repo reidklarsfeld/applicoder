@@ -8,7 +8,7 @@ export const StoreContextProvider = props => {
     verified: true, //will need to set to false when launching
     userFavs: [],
     codesmithRes: [
-      {
+      { 
         jobTitle: 'Full Stack Engineer',
         company: 'Tradelogic Corporation',
         location: 'Austin, TX',

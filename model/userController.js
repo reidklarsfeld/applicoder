@@ -12,12 +12,11 @@ userController.createUser = (req, res, next) => {
     if (error) throw error;
     if (!result[0]) {
       User.create(
-        { username: req.body.username, favorites: req.body.favorites },
+        { username: req.body.username },
         (error, user) => {
           if (error) {
             res.redirect('/login', { error });
           } else {
-            res.locals.id = user._id;
             return next();
           }
         }
@@ -28,8 +27,10 @@ userController.createUser = (req, res, next) => {
 
 //adds favorite
 userController.addFavorite = (req, res, next) => {
+    console.log(req.body.username)
   User.find({ username: req.body.username }, (error, result) => {
     if (error) throw error;
+    console.log(result)
     //if favorite is already in list, remove it
     if (result[0].favorites.length >= 1) {
       for (let i = 0; i < result[0].favorites.length; i++) {

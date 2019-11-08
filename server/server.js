@@ -26,28 +26,22 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use('/build', express.static(path.join(__dirname, '../build')));
+
 app.get('/', cookies.checkCookies, (req, res) => {
   res.status(200).sendFile(path.join(__dirname, '../index.html'));
 });
+
 app.use('/auth', authRouter);
 
 //oauth callbacks
-app.get(
-  '/github/callback',
-  tokenAccess.githubRequestToken,
-  cookies.createCookies,
-  (req, res) => {
+app.get('/github/callback',tokenAccess.githubRequestToken,cookies.createCookies,(req, res) => {
     accessinfo = res.locals.login;
     console.log(accessinfo);
     res.redirect('/');
   }
 );
 
-app.get(
-  '/linkedIn/callback',
-  tokenAccess.linkedInRequestToken,
-  cookies.createCookies,
-  (req, res) => {
+app.get('/linkedIn/callback', tokenAccess.linkedInRequestToken, cookies.createCookies, (req, res) => {
     accessinfo = res.locals.login;
     linkedInAccessToken = res.locals.accessToken;
     res.redirect('/');
@@ -75,23 +69,12 @@ app.get('/favorites', userController.getFavorites, (req, res) => {
 });
 
 //add a favorite to user
-app.post(
-  '/favorites',
-  userController.addFavorite,
-  userController.getFavorites,
-  (req, res) => {
+app.post('/favorites', userController.addFavorite, userController.getFavorites,(req, res) => {
     res.status(200).send(JSON.stringify(res.locals.results));
-  }
-);
+});
 
 // query api
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema,
-    graphiql: true
-  })
-);
+app.use('/graphql', graphqlHTTP({ schema, graphiql: true }));
 
 // global route handler
 

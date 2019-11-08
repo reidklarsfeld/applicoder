@@ -4,7 +4,7 @@ import Login from './Login.jsx';
 import Homepage from './Homepage.jsx';
 
 const LandingPage = () => {
-  const [Store, setStore] = useContext(StoreContext);
+  // const [Store, setStore] = useContext(StoreContext);
 
 
 
